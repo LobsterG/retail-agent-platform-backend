@@ -1,29 +1,31 @@
 from flask import Flask
-from flask_sqlalchemy import SQLAlchemy
 from peewee import PostgresqlDatabase
-from config import config
+from config import DevelopmentConfig
 
 db = None
 
-def create_app(config_name):
+def create_app():
     app = Flask(__name__)
-    app.config.from_object(config_name)
+    app.config.from_object(DevelopmentConfig)
 
     # Initialize database connection based on config settings
     global db
     db = PostgresqlDatabase(
-        app.config['DATABASE_NAME'],
-        user=app.config['DATABASE_USER'],
-        password=app.config['DATABASE_PASSWORD'],
-        host=app.config['DATABASE_HOST'],
-        port=app.config['DATABASE_PORT'],
+        app.config['DB_NAME'],
+        user=app.config['DB_USER'],
+        password=app.config['DB_PASSWORD'],
+        host=app.config['DB_HOST'],
+        port=app.config['DB_PORT'],
         autorollback=True,
         autocommit=True
     )
 
     with app.app_context():
-        from .api import bp as api_bp
+        # Import models after initializing the database
+        from app.models import User
 
-        app.register_blueprint(api_bp, url_prefix='/api')
+    #     from .api import bp as api_bp
 
-        return app
+    #     app.register_blueprint(api_bp, url_prefix='/api')
+
+    return app
