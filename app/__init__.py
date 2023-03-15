@@ -1,13 +1,21 @@
 from flask import Flask
 from peewee import PostgresqlDatabase
 from config import DevelopmentConfig
+from flask_wtf.csrf import CSRFProtect
 
-db = None
+csrf = CSRFProtect()
+db = PostgresqlDatabase(
+    'ingredients',  # Required by Peewee.
+    user='postgres',  # Will be passed directly to psycopg2.
+    password='postgres',  # Ditto.
+    host='localhost') 
+# db = None
 
 def create_app():
     app = Flask(__name__)
     app.config.from_object(DevelopmentConfig)
-
+    csrf.init_app(app)
+    
     # Initialize database connection based on config settings
     global db
     db = PostgresqlDatabase(
@@ -19,13 +27,14 @@ def create_app():
         autorollback=True,
         autocommit=True
     )
+    print("DB initalize complete:", type(db))
 
     with app.app_context():
         # Import models after initializing the database
-        from app.models import User
+        from app.models import Ingredient
 
-    #     from .api import bp as api_bp
-
-    #     app.register_blueprint(api_bp, url_prefix='/api')
+        from .api.ingredient.views import ingredient_bp
+        app.register_blueprint(ingredient_bp, url_prefix='/api/ingredient')
+        csrf.exempt(ingredient_bp)
 
     return app
