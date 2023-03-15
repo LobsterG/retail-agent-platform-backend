@@ -1,29 +1,40 @@
 from flask import Flask
-from flask_sqlalchemy import SQLAlchemy
 from peewee import PostgresqlDatabase
-from config import config
+from config import DevelopmentConfig
+from flask_wtf.csrf import CSRFProtect
 
-db = None
+csrf = CSRFProtect()
+db = PostgresqlDatabase(
+    'ingredients',  # Required by Peewee.
+    user='postgres',  # Will be passed directly to psycopg2.
+    password='postgres',  # Ditto.
+    host='localhost') 
+# db = None
 
-def create_app(config_name):
+def create_app():
     app = Flask(__name__)
-    app.config.from_object(config_name)
-
+    app.config.from_object(DevelopmentConfig)
+    csrf.init_app(app)
+    
     # Initialize database connection based on config settings
     global db
     db = PostgresqlDatabase(
-        app.config['DATABASE_NAME'],
-        user=app.config['DATABASE_USER'],
-        password=app.config['DATABASE_PASSWORD'],
-        host=app.config['DATABASE_HOST'],
-        port=app.config['DATABASE_PORT'],
+        app.config['DB_NAME'],
+        user=app.config['DB_USER'],
+        password=app.config['DB_PASSWORD'],
+        host=app.config['DB_HOST'],
+        port=app.config['DB_PORT'],
         autorollback=True,
         autocommit=True
     )
+    print("DB initalize complete:", type(db))
 
     with app.app_context():
-        from .api import bp as api_bp
+        # Import models after initializing the database
+        from app.models import Ingredient
 
-        app.register_blueprint(api_bp, url_prefix='/api')
+        from .api.ingredient.views import ingredient_bp
+        app.register_blueprint(ingredient_bp, url_prefix='/api/ingredient')
+        csrf.exempt(ingredient_bp)
 
-        return app
+    return app
