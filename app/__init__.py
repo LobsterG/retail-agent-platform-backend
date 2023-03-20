@@ -31,10 +31,10 @@ def create_app():
 
     with app.app_context():
         # Import models after initializing the database
-        from app.models import Ingredient
+        from app.models.users import User
 
-        from .api.ingredient.views import ingredient_bp
-        app.register_blueprint(ingredient_bp, url_prefix='/api/ingredient')
-        csrf.exempt(ingredient_bp)
+        from .api.user.views import user_bp
+        app.register_blueprint(user_bp, url_prefix='/api/user')
+        csrf.exempt(user_bp)
 
     return app
