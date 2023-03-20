@@ -5,7 +5,9 @@ import click
 from flask.cli import FlaskGroup, with_appcontext
 from flask_migrate import Migrate
 from app import create_app, db
-from app.models import Ingredient
+from app.models.users import User
+from app.models.countries import Country
+from scripts.seed import UserFactory
 
 app = create_app()
 cli = FlaskGroup(app)
@@ -16,7 +18,9 @@ migrate.init_app(app, db)
 @cli.command()
 def create_tables():
     """Create database tables"""
-    db.create_tables([Ingredient])
+    db.create_tables([Country])
+    db.create_tables([User])
+    print("Tables created!")
 
 @cli.command()
 def runserver():
@@ -24,9 +28,13 @@ def runserver():
     app.run(host='0.0.0.0', port=5000, debug=True)
 
 @cli.command()
-def seed():
+@click.option('--count')
+def seed(**kwargs):
     """Seed the database with test data."""
-    Ingredient.seed()
+    # Country.seed()
+    User.seed(int(kwargs['count']))
+    print("Database seeded!")
+
 
 if __name__ == '__main__':
     cli()
