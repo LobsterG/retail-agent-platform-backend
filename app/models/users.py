@@ -8,7 +8,7 @@ class User(BaseModel):
     first_name = CharField()
     last_name = CharField()
     email = CharField(unique=True)
-    username = CharField(primary_key=True)
+    id = CharField(primary_key=True)
     password_salt = CharField()
     password_hash = CharField()
     account_status = CharField()
@@ -16,15 +16,12 @@ class User(BaseModel):
 
 
     @classmethod
-    def seed(cls, count):
+    def seed(cls, country_code, count=1):
         from scripts.seed import UserFactory
 
-        fake_users = UserFactory.create_batch(count)
+        fake_users = UserFactory.create_batch(count, country_code=country_code)
         with db.atomic():
             user_list = [user.__dict__['__data__'] for user in fake_users]
             for user in user_list:
                 cls.create(**user)
-            # for user in fake_users:
-            #     user.save()
-                # print("User created:", user.username, user.first_name, user.email)
-            #     # cls.create(**user)
+        return fake_users
