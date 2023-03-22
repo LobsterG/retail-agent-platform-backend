@@ -1,6 +1,8 @@
 from . import BaseModel
 from peewee import *
 from app import db
+from enum import Enum
+
 
 class Country(BaseModel):
     code = CharField(primary_key=True)
@@ -8,13 +10,12 @@ class Country(BaseModel):
     
 
     @classmethod
-    def seed(cls):
-        countries = [
-            {'code': 'US', 'name': 'United States'},
-            {'code': 'CA', 'name': 'Canada'},
-            {'code': 'GB', 'name': 'United Kingdom'},
-            {'code': 'AU', 'name': 'Australia'},
-        ]
+    def seed(cls, count):
+        from scripts.seed import CountryFactory
+
+        fake_Countries = CountryFactory.create_batch(count)
         with db.atomic():
-            for country in countries:
+            country_list = [country.__dict__['__data__'] for country in fake_Countries]
+            for country in country_list:
                 cls.create(**country)
+        return fake_Countries
