@@ -23,6 +23,13 @@ def create_tables():
     print("Tables created!")
 
 @cli.command()
+def drop_tables():
+    """Drop database tables"""
+    db.drop_tables([User])
+    db.drop_tables([Country])
+    print("Tables droped!")
+
+@cli.command()
 def runserver():
     """Run the development server"""
     app.run(host='0.0.0.0', port=5000, debug=True)
