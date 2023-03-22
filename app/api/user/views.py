@@ -4,15 +4,13 @@ from app import csrf
 from app.models.users import User
 from playhouse.shortcuts import model_to_dict
 
-
 user_bp = Blueprint('user_bp', __name__)
 
 @user_bp.route('/', methods=['GET', 'POST'])
 def get_users():
     if request.method == 'GET':
         users = User.select()
-        user_data = [user.__dict__['__data__'] for user in users]
-
+        user_data = [model_to_dict(user) for user in users]
         return jsonify(user_data)
     elif request.method == 'POST':
         data = request.json

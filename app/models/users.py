@@ -9,8 +9,8 @@ class User(BaseModel):
     last_name = CharField()
     email = CharField(unique=True)
     username = CharField(primary_key=True)
-    password_salt = BlobField()
-    password_hash = BlobField()
+    password_salt = CharField()
+    password_hash = CharField()
     account_status = CharField()
     country_code = ForeignKeyField(Country, backref='users')
 
