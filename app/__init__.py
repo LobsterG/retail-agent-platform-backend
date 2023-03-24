@@ -27,7 +27,7 @@ def create_app():
     # Add a handler to log to a file
     logPath = DevelopmentConfig.LOGGER_PATH
     fileName = os.path.basename(__file__)
-    fileHandler = logging.FileHandler("{0}/{1}.log".format(logPath, fileName))
+    fileHandler = logging.FileHandler("{0}/{1}.log".format(logPath, fileName), "w")
     fileHandler.setFormatter(logFormatter)
     rootLogger.addHandler(fileHandler)
 
@@ -57,6 +57,6 @@ def create_app():
         from .api import user_bp
         app.register_blueprint(user_bp, url_prefix='/api/user')
         csrf.exempt(user_bp)
-        rootLogger.info("API blueprints added.")
+        rootLogger.debug("API blueprints added.")
 
     return app
