@@ -33,7 +33,7 @@ def create_app():
         # Import models after initializing the database
         from app.models.users import User
 
-        from .api.user.views import user_bp
+        from .api import user_bp
         app.register_blueprint(user_bp, url_prefix='/api/user')
         csrf.exempt(user_bp)
 
