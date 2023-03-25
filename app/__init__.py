@@ -54,9 +54,13 @@ def create_app():
         # Import models after initializing the database
         from app.models.users import User
 
+        # Note: import * is only allowed at module level
         from .api import user_bp
+        from .api import merchant_bp
         app.register_blueprint(user_bp, url_prefix='/api/user')
-        csrf.exempt(user_bp)
+        app.register_blueprint(merchant_bp, url_prefix='/api/merchant')
+        csrf.exempt(user_bp)    
+        csrf.exempt(merchant_bp)    
         rootLogger.debug("API blueprints added.")
 
     return app
