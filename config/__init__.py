@@ -16,6 +16,9 @@ class Config:
     DB_PORT = os.environ.get('DB_PORT', 5432)
     SQLALCHEMY_DATABASE_URI = f"postgresql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
     
+    LOGGER_NAME = 'app_logger'
+    LOGGER_PATH = 'app\logs'
+
 class DevelopmentConfig(Config):
     DEBUG = True
 
