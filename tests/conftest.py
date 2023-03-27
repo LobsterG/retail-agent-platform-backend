@@ -16,6 +16,9 @@ def app():
 def client(app):
     return app.test_client()
 
+# TODO: set up connections to test database for testing purpose
+# It may be too complex later on to mock the database response
+# Espacially when the methods are usually chained. 
 # @pytest.fixture()
 # def mock_db():
 #     mock_db = Mock()
