@@ -51,8 +51,7 @@ def update_user(username):
         # TODO: need to somehow filter the data given by user
         query = User.update(**data).where(User.id == username)
         query.execute()
-        update_user = User.get(User.id == username)
-        return jsonify(updated_user.to_dict()), 200
+        return jsonify({"message": "User updated successfully"}), 200
     except DoesNotExist:
         logger.debug(f"Error user not found {username}")
         return jsonify({"Error": "User not found"}), 404
