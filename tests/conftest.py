@@ -4,12 +4,13 @@ from app import create_app
 from app.models.users import User
 from app import db
 from unittest.mock import Mock, patch
-
+from manage import create_tables
 
 @pytest.fixture
 def app():
     # TODO: be able to seperate test config from other env
     app = create_app()
+    
     yield app
 
 @pytest.fixture

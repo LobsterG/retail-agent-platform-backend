@@ -5,15 +5,15 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-DB_NAME = os.environ.get('DB_NAME', 'my_database')
-DB_USER = os.environ.get('DB_USER', 'my_user')
-DB_PASSWORD = os.environ.get('DB_PASSWORD', 'my_password')
-DB_HOST = os.environ.get('DB_HOST', 'localhost')
-DB_PORT = os.environ.get('DB_PORT', 5432)
+POSTGRES_NAME = os.environ.get('POSTGRES_NAME', 'shop_db')
+POSTGRES_USER = os.environ.get('POSTGRES_USER', 'postgres')
+POSTGRES_PASSWORD = os.environ.get('POSTGRES_PASSWORD', 'my_password')
+POSTGRES_HOST = os.environ.get('POSTGRES_HOST', 'localhost')
+POSTGRES_PORT = os.environ.get('POSTGRES_PORT', 5432)
 
-with psycopg2.connect(host=DB_HOST, user=DB_USER, password=DB_PASSWORD, port=DB_PORT) as conn:
+with psycopg2.connect(host=POSTGRES_HOST, user=POSTGRES_USER, password=POSTGRES_PASSWORD, port=POSTGRES_PORT) as conn:
     cursor = conn.cursor()
     conn.autocommit = True
-    cursor.execute('CREATE DATABASE Ingredients')
+    cursor.execute('CREATE DATABASE shop_db')
     cursor.close()
     conn.close()

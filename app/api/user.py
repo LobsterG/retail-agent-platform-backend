@@ -15,7 +15,7 @@ logger = logging.getLogger(Config.LOGGER_NAME)
 def get_users():
     try:
         users = User.select()
-        user_data = [model_to_dict(user) for user in users]
+        user_data = [user.to_dict() for user in users]
         logger.debug("Successfully retrieved all users.")
         return jsonify(user_data), 200
     except Exception as e:
