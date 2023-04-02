@@ -12,13 +12,12 @@ from playhouse.shortcuts import model_to_dict
 @patch('app.models.users.User.select')
 def test_get_users(mock_users_select, client, user):
         
-    mock_user = User(**user)
-    mock_users_select.return_value = [mock_user]
+    mock_users_select.return_value = [User(**user)]
     res = client.get('/api/user/')
     
     assert res.status_code == 200
     assert len(json.loads(res.data.decode('utf-8'))) == 1
-    assert json.loads(res.data.decode('utf-8'))[0]['id'] == mock_user.id
+    assert json.loads(res.data.decode('utf-8'))[0]['id'] == user['id']
 
 @patch('app.models.users.User.create')
 def test_create_user(mock_user_create, client, user):

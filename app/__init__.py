@@ -8,7 +8,7 @@ from flask_wtf.csrf import CSRFProtect
 
 csrf = CSRFProtect()
 db = PostgresqlDatabase(
-    'ingredients',  # Required by Peewee.
+    'shop_db',  # Required by Peewee.
     user='postgres',  # Will be passed directly to psycopg2.
     password='postgres',  # Ditto.
     host='localhost') 
@@ -40,11 +40,11 @@ def create_app():
     # Initialize database connection based on config settings
     global db
     db = PostgresqlDatabase(
-        app.config['DB_NAME'],
-        user=app.config['DB_USER'],
-        password=app.config['DB_PASSWORD'],
-        host=app.config['DB_HOST'],
-        port=app.config['DB_PORT'],
+        app.config['POSTGRES_NAME'],
+        user=app.config['POSTGRES_USER'],
+        password=app.config['POSTGRES_PASSWORD'],
+        host=app.config['POSTGRES_HOST'],
+        port=app.config['POSTGRES_PORT'],
         autorollback=True,
         autocommit=True
     )
