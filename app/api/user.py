@@ -1,12 +1,15 @@
 import logging 
+import datetime
+import jwt
 
-from flask import jsonify, request
+from flask import jsonify, request, abort
 from flask import Blueprint
 from app import csrf
 from app.models.users import User
 from playhouse.shortcuts import model_to_dict
 from config import Config
 from peewee import DoesNotExist
+from werkzeug.security import check_password_hash, generate_password_hash
 
 user_bp = Blueprint('user_bp', __name__)
 logger = logging.getLogger(Config.LOGGER_NAME)
@@ -26,11 +29,54 @@ def get_users():
 def create_user():
     try:
         data = request.json
+        data['password_hash'] = generate_password_hash(data['password_hash'])
         user = User.create(**data)
         return jsonify(user.to_dict()), 201
     except Exception as e:
         logger.exception(f"Error creating user", exc_info=e)
         return jsonify({"error": "Unable to create user"}), 400
+
+@user_bp.route('/login', methods=['POST'])
+def login():
+    try:
+        data = request.json
+        if not data or 'email' not in data or 'password' not in data:
+            abort(400, "Please provide user credentials")
+
+        email = data['email']
+        password = data['password']
+
+        # Check if user exists
+        user = User().get_or_none(email=email)
+        if not user:
+            return {
+                "message": "Invalid credentials",
+                "data": None,
+                "error": "Unauthorized"
+            }, 401
+        logger.debug(f"Email found: {user.email}")
+
+        # Verify password
+        if not check_password_hash(user.password_hash, password):
+            return {
+                "message": "Invalid credentials",
+                "data": None,
+                "error": "Unauthorized"
+            }, 401
+        logger.debug(f"Password matched for user {user.email}")
+
+        # Generate JWT token
+        exp = datetime.datetime.utcnow() + datetime.timedelta(days=1)
+        jwt_token = jwt.encode({'email': email, 'exp': exp}, Config.SECRET_KEY, algorithm='HS256')
+
+        return {
+            "message": "Successfully logged in",
+            "data": {"token": jwt_token},
+            "error": None
+        }, 200
+    except Exception as e:
+        logger.exception(f"Error logging into user", exc_info=e)
+        return jsonify({"error": "Unable to login"}), 400
 
 @user_bp.route('/<username>', methods=["GET"])
 def get_user(username):
