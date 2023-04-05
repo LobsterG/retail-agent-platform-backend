@@ -7,6 +7,8 @@ from app.models.merchants import Merchant
 from playhouse.shortcuts import model_to_dict
 from config import Config
 from peewee import DoesNotExist
+from app.auth import verify_jwt_token
+
 
 merchant_bp = Blueprint('merchant_bp', __name__)
 logger = logging.getLogger(Config.LOGGER_NAME)
@@ -23,7 +25,8 @@ def get_merchants():
         return jsonify({"error": "Unable to retrieve merchants"}), 500
 
 @merchant_bp.route('/', methods=['POST'])
-def create_merchant():
+@verify_jwt_token
+def create_merchant(user):
     try:
         data = request.json
         merchant = Merchant.create(**data)
@@ -33,7 +36,8 @@ def create_merchant():
         return jsonify({"error": "Unable to create merchant"}), 400
 
 @merchant_bp.route('/<merchantname>', methods=["GET"])
-def get_merchant(merchantname):
+@verify_jwt_token
+def get_merchant(user, jwt_token, merchantname):
     try:
         merchant = Merchant.get(Merchant.id == merchantname)
         return jsonify(merchant.to_dict()), 200
@@ -45,7 +49,8 @@ def get_merchant(merchantname):
         return jsonify({"error": "Unable to retrieve merchant"}),500
 
 @merchant_bp.route('/<merchantname>', methods=["PUT"])
-def update_merchant(merchantname):
+@verify_jwt_token
+def update_merchant(user, jwt_token, merchantname):
     try:
         data = request.get_json()
         # TODO: need to somehow filter the data given by merchant
@@ -62,7 +67,8 @@ def update_merchant(merchantname):
 
 
 @merchant_bp.route('/<merchantname>', methods=["DELETE"])
-def delete_merchant(merchantname):
+@verify_jwt_token
+def delete_merchant(user, jwt_token, merchantname):
     try:
         query = Merchant.delete().where(Merchant.id == merchantname)
         query.execute()
