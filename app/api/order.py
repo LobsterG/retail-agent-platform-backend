@@ -69,6 +69,7 @@ def create_order(user):
         data = request.json
 
         if data["payment_status"] not in PaymentStatus:
+            logger.debug(f"Invalid payment status, {data['payment_status']}.")
             return jsonify({"error": "Invalid payment status."}), 400
 
         # Get all the product and merchant IDs and query at once to reduct server load
@@ -85,6 +86,7 @@ def create_order(user):
         )
         
         if not purchase_products:
+            logger.debug(f"No valid products found for user {buyer_id} with products {product_ids}.")
             return jsonify({"error": "No valid products found."}), 400
 
         # So product can be quickly accessed via ID
@@ -114,6 +116,7 @@ def create_order(user):
                 product_dict[purchase_info["product"]].save()
 
         if not orders:
+            logger.debug(f"No valid orders can be created for user {buyer_id} with products {product_ids}.")
             return jsonify({"error": "No valid orders can be created."}), 400
 
         result = {
