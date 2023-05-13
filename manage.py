@@ -11,6 +11,7 @@ from app.models.products import Product
 from app.models.merchants import Merchant
 from app.models.countries import Country
 from app.models.orders import Order
+from app.models.order_items import OrderItem
 
 
 app = create_app()
@@ -27,11 +28,13 @@ def create_tables():
     db.create_tables([Merchant])
     db.create_tables([Product])
     db.create_tables([Order])
+    db.create_tables([OrderItem])
     print("Tables created!")
 
 @cli.command()
 def drop_tables():
     """Drop database tables"""
+    db.drop_tables([OrderItem])
     db.drop_tables([Order])
     db.drop_tables([Product])
     db.drop_tables([Merchant])
@@ -59,8 +62,10 @@ def seed(**kwargs):
     for user in fake_users:
         fake_orders.append(Order.seed(user_id=user[0]))
 
-    for merchant in fake_merchants:
+    for i, merchant in enumerate(fake_merchants):
         fake_products.append(Product.seed(merchant_id=merchant[0]))
+        tmp_order_item = OrderItem.seed(product_id=fake_products[i][0], order_id=fake_orders[i][0])
+        
     print("Database seeded!")
 
 

@@ -39,7 +39,6 @@ class EnumField(CharField):
 
 class Order(BaseModel):
     id = AutoField(primary_key=True)
-    total_price = FloatField()
     payment_status = EnumField(choices=PaymentStatus)
     order_status = EnumField(choices=OrderStatus)
     user_id = ForeignKeyField(User, backref='orders')
