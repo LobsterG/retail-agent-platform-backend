@@ -5,7 +5,7 @@ from .countries import Country
 from .users import User
 
 class Merchant(BaseModel):
-    # id = AutoField(primary_key=True)
+    id = AutoField(primary_key=True)
     name = CharField()
     country_code = ForeignKeyField(Country, backref='merchant')
     user_id = ForeignKeyField(User, backref='merchant')

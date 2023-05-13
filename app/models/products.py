@@ -33,6 +33,7 @@ class Product(BaseModel):
     name = CharField()
     price = FloatField()
     status = EnumField(choices=Status)
+    stock_level = IntegerField()
     merchant_id = ForeignKeyField(Merchant, backref='products')
 
 
