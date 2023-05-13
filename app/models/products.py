@@ -22,7 +22,7 @@ class EnumField(CharField):
         self.max_length = 255
 
     def db_value(self, value):
-        return value.value
+        return value
 
     def python_value(self, value):
         return self.choices(type(list(self.choices)[0].value)(value))
@@ -31,7 +31,7 @@ class EnumField(CharField):
 class Product(BaseModel):
     id = AutoField(primary_key=True)
     name = CharField()
-    price = CharField()
+    price = FloatField()
     status = EnumField(choices=Status)
     merchant_id = ForeignKeyField(Merchant, backref='products')
 
