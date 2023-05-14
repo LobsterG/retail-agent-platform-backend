@@ -112,8 +112,12 @@ def create_order(user):
                     )
                 )
                 # Update stock level
-                product_dict[purchase_info["product"]].stock_level -= purchase_info["quantitiy"]
-                product_dict[purchase_info["product"]].save()
+                query = Product \
+                            .update(stocket_level=Product.stock_level - purchase_info["quantitiy"]) \
+                            .where(Product.id == purchase_info["product"])
+                query.execute()
+                # product_dict[purchase_info["product"]].stock_level -= purchase_info["quantitiy"]
+                # product_dict[purchase_info["product"]].save()
 
         if not orders:
             logger.debug(f"No valid orders can be created for user {buyer_id} with products {product_ids}.")
@@ -132,6 +136,7 @@ def create_order(user):
 @verify_jwt_token
 def get_order(user, jwt_token, user_id, order_id):
     try:
+        # TODO: check if buyer id is the same as the request user id
         order = Order.get(Order.id == ordername)
         return jsonify(order.to_dict()), 200
     except DoesNotExist:
