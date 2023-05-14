@@ -136,8 +136,13 @@ def create_order(user):
 @verify_jwt_token
 def get_order(user, jwt_token, user_id, order_id):
     try:
-        # TODO: check if buyer id is the same as the request user id
-        order = Order.get(Order.id == ordername)
+        # TODO: need to handle a case where user and user_id has a mismatch
+        order = Order.get(Order.id == order_id)
+
+        if order.user_id != user_id:
+            logger.debug(f"Error user {user_id} tried accessing order {order_id}")
+            return jsonify({"Error": "Order does not belong to you."}), 401
+
         return jsonify(order.to_dict()), 200
     except DoesNotExist:
         logger.debug(f"Error order not found {order_id}")
@@ -146,34 +151,43 @@ def get_order(user, jwt_token, user_id, order_id):
         logger.exception(f"Error getting order", exc_info=e)
         return jsonify({"error": "Unable to retrieve order"}),500
 
-@order_bp.route('/<ordername>', methods=["PUT"])
+"""
+Only payment_status and order_status can be updated, so the expected data structure should be
+data = {
+    "payment_status": "enum",
+    "order_status": "enum"
+}
+This would be a request from the payment service and logistic service, so would not be from the end user directly
+"""
+@order_bp.route('/<orderid>', methods=["PATCH"])
 @verify_jwt_token
-def update_order(user, jwt_token, ordername):
+def update_order(user, jwt_token, order_id):
     try:
         data = request.get_json()
-        # TODO: need to somehow filter the data given by order
-        query = Order.update(**data).where(Order.id == ordername)
-        query.execute()
-        update_order = Order.get(Order.id == ordername)
-        return jsonify(updated_order.to_dict()), 200
+        query = Order.update(**data).where(Order.id == order_id)
+        rows_updated = query.execute()
+        if rows_updated:
+            return jsonify({"Message": "Updated successfully"}), 204
+        else:
+            return jsonify({"Message": "No changes were made"}), 400
     except DoesNotExist:
-        logger.debug(f"Error order not found {ordername}")
+        logger.debug(f"Error order not found {order_id}")
         return jsonify({"Error": "Order not found"}), 404
     except Exception as e:
         logger.exception(f"Error getting order", exc_info=e)
         return jsonify({"error": "Unable to update order"}), 500
 
 
-@order_bp.route('/<ordername>', methods=["DELETE"])
+@order_bp.route('/<order_id>', methods=["DELETE"])
 @verify_jwt_token
-def delete_order(user, jwt_token, ordername):
+def delete_order(user, jwt_token, order_id):
     try:
-        query = Order.delete().where(Order.id == ordername)
+        query = Order.delete().where(Order.id == order_id)
         query.execute()
-        logger.debug(f"Order {ordername} has been deleted.")
-        return jsonify({"message": "Order deleted successfully"}), 200
+        logger.debug(f"Order {order_id} has been deleted.")
+        return jsonify({"Message": "Order deleted successfully"}), 204
     except DoesNotExist:
-        logger.debug(f"Error order not found {ordername}")
+        logger.debug(f"Error order not found {order_id}")
         return jsonify({"Error": "Order not found"}), 404
     except Exception as e:
         logger.exception(f"Error deleting order", exc_info=e)
