@@ -57,10 +57,14 @@ def create_app():
         # Note: import * is only allowed at module level
         from .api import user_bp
         from .api import merchant_bp
-        app.register_blueprint(user_bp, url_prefix='/api/user')
-        app.register_blueprint(merchant_bp, url_prefix='/api/merchant')
+        from .api import order_bp
+        api_version = "v1"
+        app.register_blueprint(user_bp, url_prefix=f'/api/{api_version}/user')
+        app.register_blueprint(merchant_bp, url_prefix=f'/api/{api_version}/merchant')
+        app.register_blueprint(order_bp, url_prefix=f'/api/{api_version}/order')
         csrf.exempt(user_bp)    
-        csrf.exempt(merchant_bp)    
+        csrf.exempt(merchant_bp)   
+        csrf.exempt(order_bp) 
         rootLogger.debug("API blueprints added.")
 
     return app

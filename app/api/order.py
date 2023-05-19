@@ -3,10 +3,7 @@ import logging
 from flask import jsonify, request
 from flask import Blueprint
 from app import csrf
-from app.models.orders import Order, OrderStatus, PaymentStatus
-from app.models.order_items import OrderItem
-from app.models.products import Product
-from app.models.merchant import Merchant
+from app.models import Order, OrderStatus, PaymentStatus, OrderItem, Product, Merchant
 from playhouse.shortcuts import model_to_dict
 from config import Config
 from peewee import DoesNotExist

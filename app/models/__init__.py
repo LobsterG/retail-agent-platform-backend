@@ -18,3 +18,10 @@ class BaseModel(Model):
     @classmethod
     def get_by_id(cls, id):
         return cls.get(cls.id == id)
+
+from .merchants import Merchant
+from .countries import Country
+from .order_items import OrderItem
+from .products import Product
+from .orders import Order, PaymentStatus, OrderStatus
+from .users import User
