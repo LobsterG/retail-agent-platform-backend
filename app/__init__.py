@@ -23,8 +23,6 @@ def db_initialize(environment='dev'):
         password=app.config['POSTGRES_PASSWORD'],
         host=app.config['POSTGRES_HOST'],
         port=app.config['POSTGRES_PORT'],
-        autorollback=True,
-        autocommit=True
     )
     logger = logging.getLogger(Config.LOGGER_NAME)
     logger.debug(f"DB initalize complete: {app.config['POSTGRES_NAME']}.")
