@@ -21,9 +21,12 @@ class Config:
 
 class DevelopmentConfig(Config):
     DEBUG = True
+    POSTGRES_NAME = os.environ.get('POSTGRES_NAME', 'shop_db') + '_dev'
 
-class TestingConfig(Config):
+class TestConfig(Config):
     TESTING = True
+    DEBUG = True
+    POSTGRES_NAME = os.environ.get('POSTGRES_NAME', 'shop_db') + '_test'
 
 class ProductionConfig(Config):
     DEBUG = False

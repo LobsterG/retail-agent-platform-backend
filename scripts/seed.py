@@ -7,7 +7,6 @@ from app.models.merchants import Merchant
 from app.models.countries import Country
 from app.models.orders import Order, PaymentStatus, OrderStatus
 from app.models.order_items import OrderItem
-from app import db
 
 
 # Generate some fake data for the models

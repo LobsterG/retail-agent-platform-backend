@@ -1,6 +1,5 @@
 from . import BaseModel
 from peewee import *
-from app import db
 from enum import Enum
 from .users import User
 
@@ -49,7 +48,7 @@ class Order(BaseModel):
         from scripts.seed import OrderFactory
 
         fake_order = OrderFactory.create_batch(count, user_id=user_id)
-        with db.atomic():
+        with BaseModel._meta.database.atomic():
             order_list = [order.__dict__['__data__'] for order in fake_order]
             for order in order_list:
                 cls.create(**order)

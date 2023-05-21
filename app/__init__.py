@@ -3,20 +3,42 @@ import os
 
 from flask import Flask
 from peewee import PostgresqlDatabase
-from config import DevelopmentConfig
+from config import Config, DevelopmentConfig, ProductionConfig, TestConfig
 from flask_wtf.csrf import CSRFProtect
+from playhouse.flask_utils import FlaskDB
 
 csrf = CSRFProtect()
-db = PostgresqlDatabase(
-    'shop_db',  # Required by Peewee.
-    user='postgres',  # Will be passed directly to psycopg2.
-    password='postgres',  # Ditto.
-    host='localhost') 
-# db = None
 
-def create_app():
+def db_initialize(environment='dev'):
     app = Flask(__name__)
-    app.config.from_object(DevelopmentConfig)
+    if 'prod' == environment:
+        app.config.from_object(ProductionConfig)
+    elif 'test' == environment:
+        app.config.from_object(TestConfig)
+    else:
+        app.config.from_object(DevelopmentConfig)
+    database = PostgresqlDatabase(
+        app.config['POSTGRES_NAME'],
+        user=app.config['POSTGRES_USER'],
+        password=app.config['POSTGRES_PASSWORD'],
+        host=app.config['POSTGRES_HOST'],
+        port=app.config['POSTGRES_PORT'],
+        autorollback=True,
+        autocommit=True
+    )
+    logger = logging.getLogger(Config.LOGGER_NAME)
+    logger.debug(f"DB initalize complete: {app.config['POSTGRES_NAME']}.")
+    return database
+
+
+def create_app(environment):
+    app = Flask(__name__)
+    if 'prod' == environment:
+        app.config.from_object(ProductionConfig)
+    elif 'test' == environment:
+        app.config.from_object(TestConfig)
+    else:
+        app.config.from_object(DevelopmentConfig)
     csrf.init_app(app)
 
     # Create a custom logger for the Flask app
@@ -36,24 +58,7 @@ def create_app():
     consoleHandler.setFormatter(logFormatter)
     rootLogger.addHandler(consoleHandler)
 
-    
-    # Initialize database connection based on config settings
-    global db
-    db = PostgresqlDatabase(
-        app.config['POSTGRES_NAME'],
-        user=app.config['POSTGRES_USER'],
-        password=app.config['POSTGRES_PASSWORD'],
-        host=app.config['POSTGRES_HOST'],
-        port=app.config['POSTGRES_PORT'],
-        autorollback=True,
-        autocommit=True
-    )
-    print("DB initalize complete:", type(db))
-
     with app.app_context():
-        # Import models after initializing the database
-        from app.models.users import User
-
         # Note: import * is only allowed at module level
         from .api import user_bp
         from .api import merchant_bp
@@ -66,5 +71,5 @@ def create_app():
         csrf.exempt(merchant_bp)   
         csrf.exempt(order_bp) 
         rootLogger.debug("API blueprints added.")
-
+        
     return app
