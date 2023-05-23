@@ -13,20 +13,21 @@ from playhouse.shortcuts import model_to_dict
 api_version = 'v1'
 class MerchantTestCase(unittest.TestCase):
 
-
-    def bypass_auth(self):
+    @classmethod
+    def bypass_auth(cls):
         # MUST BE BEFORE THE UUT GETS IMPORTED ANYWHERE!
         # Source: https://stackoverflow.com/questions/7667567/can-i-patch-a-python-decorator-before-it-wraps-a-function
         from mock import patch, MagicMock
         def mock_verify_jwt_token(f):
             @wraps(f)
             def decorated_function(*args, **kwargs):
-                return f(self.data_objects['user'], *args, **kwargs)
+                return f(cls.data_objects['user'], *args, **kwargs)
             return decorated_function
         # Patch the verify_jwt_token decorator with the mock function
         patch('app.auth.verify_jwt_token', side_effect=mock_verify_jwt_token).start()
 
-    def initalize_data(self):
+    @classmethod
+    def initalize_data(cls):
         countr_code = 'TC'
         user_id = 'test_user_id'
         merchant_id = 'test_merchant_id'
@@ -50,29 +51,30 @@ class MerchantTestCase(unittest.TestCase):
             "user_id": user_id
         }
         print('Initalizing Data...')        
-        self.data_objects = {}
-        self.data_objects['country'] = country_data
-        self.data_objects['user'] = user_data
-        self.data_objects['merchant'] = merchant_data
+        cls.data_objects = {}
+        cls.data_objects['country'] = country_data
+        cls.data_objects['user'] = user_data
+        cls.data_objects['merchant'] = merchant_data
         print('Initalizing Data Completed.')     
 
+    @classmethod
+    def setUpClass(cls):
+        cls.initalize_data()
+        cls.bypass_auth()
+        cls.database = db_initialize('test')
+        cls.app = create_app('test')
+        cls.client = cls.app.test_client() 
+        with cls.app.app_context():
+            cls.database.bind(MODELS)
+            cls.database.create_tables(MODELS)
+    
+    @classmethod
+    def tearDownClass(cls):
+        with cls.app.app_context():
+            cls.database.drop_tables(MODELS)
+            cls.database.close()
 
-    def setUp(self):
-        self.bypass_auth()
-        self.initalize_data()
-        self.database = db_initialize('test')
-        self.app = create_app('test')
-        self.client = self.app.test_client() 
-        with self.app.app_context():
-            self.database.bind(MODELS)
-            self.database.create_tables(MODELS)
-            
-
-    def tearDown(self):
-        with self.app.app_context():
-            self.database.drop_tables(MODELS)
-            self.database.close()
-
+    # TODO: make sure this test is run first before other tests
     def test_get_merchants(self):
         response = self.client.get(f'/api/{api_version}/merchant/')
         data = response.get_json()
@@ -97,7 +99,18 @@ class MerchantTestCase(unittest.TestCase):
         self.assertEqual(len(data), 1)
         self.assertEqual(data[0]['name'], self.data_objects['merchant']['name'])
 
+    # this test is dependent on test_create_merchant
+    def test_get_merchant(self):
+        merchant_id = 1
+        response = self.client.get(f'/api/{api_version}/merchant/{merchant_id}')
+        data = response.get_json()
+        self.assertEqual(response.status_code, 200)
 
+    # def test_update_merchant(self):
+    #     assert True == True
+    
+    # def test_delete_merchant(self):
+    #     assert True == True
 
 if __name__ == '__main__':
     unittest.main()
