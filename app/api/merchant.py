@@ -37,7 +37,7 @@ def create_merchant(user):
 
 @merchant_bp.route('/<merchantname>', methods=["GET"])
 @verify_jwt_token
-def get_merchant(user, jwt_token, merchantname):
+def get_merchant(user, merchantname):
     try:
         merchant = Merchant.get(Merchant.id == merchantname)
         return jsonify(merchant.to_dict()), 200
@@ -50,7 +50,7 @@ def get_merchant(user, jwt_token, merchantname):
 
 @merchant_bp.route('/<merchantname>', methods=["PUT"])
 @verify_jwt_token
-def update_merchant(user, jwt_token, merchantname):
+def update_merchant(user, merchantname):
     try:
         data = request.get_json()
         # TODO: need to somehow filter the data given by merchant
@@ -68,7 +68,7 @@ def update_merchant(user, jwt_token, merchantname):
 
 @merchant_bp.route('/<merchantname>', methods=["DELETE"])
 @verify_jwt_token
-def delete_merchant(user, jwt_token, merchantname):
+def delete_merchant(user, merchantname):
     try:
         query = Merchant.delete().where(Merchant.id == merchantname)
         query.execute()
