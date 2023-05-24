@@ -10,6 +10,10 @@ from app.models import MODELS
 from unittest.mock import patch, MagicMock
 from playhouse.shortcuts import model_to_dict
 
+# TODO: this needs to be refactored. The test database should already have exiting merchant created. 
+# So each test could test their own instance of merchant
+# This is to avoid delete or update operation corrupting the data in the test data.
+# TODO: Add test cases for operations that would expect to fail. Currently only successful operations are tested
 api_version = 'v1'
 class MerchantTestCase(unittest.TestCase):
 
@@ -74,8 +78,10 @@ class MerchantTestCase(unittest.TestCase):
             cls.database.drop_tables(MODELS)
             cls.database.close()
 
-    # TODO: make sure this test is run first before other tests
-    def test_get_merchants(self):
+    # 01 is added to the test case name as this should be the first test case to be run.
+    # Other test cases will create data in the test db so the assert equal to 0 will no longer work
+    # Pytest sort the test cases in alphabatical order
+    def test_01_get_merchants(self):
         response = self.client.get(f'/api/{api_version}/merchant/')
         data = response.get_json()
         self.assertEqual(response.status_code, 200)
@@ -99,18 +105,40 @@ class MerchantTestCase(unittest.TestCase):
         self.assertEqual(len(data), 1)
         self.assertEqual(data[0]['name'], self.data_objects['merchant']['name'])
 
-    # this test is dependent on test_create_merchant
+    # This test is dependent on test_create_merchant
     def test_get_merchant(self):
         merchant_id = 1
         response = self.client.get(f'/api/{api_version}/merchant/{merchant_id}')
         data = response.get_json()
         self.assertEqual(response.status_code, 200)
+        self.assertEqual(data["name"], self.data_objects['merchant']['name'])
 
-    # def test_update_merchant(self):
-    #     assert True == True
-    
-    # def test_delete_merchant(self):
-    #     assert True == True
+    def test_update_merchant(self):
+        update_merchant_data = {
+            "name": 'test_changed_merchant_id'
+        }
+
+        merchant_id = 1
+        response = self.client.put(
+            f'/api/{api_version}/merchant/{merchant_id}', 
+            data=json.dumps(update_merchant_data), 
+            content_type='application/json')
+        self.assertEqual(response.status_code, 200)
+        
+        response = self.client.get(f'/api/{api_version}/merchant/{merchant_id}')        
+        data = response.get_json()
+        self.assertEqual(data["name"], update_merchant_data['name'])
+
+    # Adding z in the test name so this will execute last
+    def test_z_delete_merchant(self):
+        merchant_id = 1
+        response = self.client.delete(f'/api/{api_version}/merchant/{merchant_id}')
+        self.assertEqual(response.status_code, 200)
+
+        response = self.client.get(f'/api/{api_version}/merchant/')
+        data = response.get_json()
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(data), 0)
 
 if __name__ == '__main__':
     unittest.main()

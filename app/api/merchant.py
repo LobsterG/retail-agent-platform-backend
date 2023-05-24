@@ -40,7 +40,7 @@ def create_merchant(user):
 def get_merchant(user, merchantname):
     try:
         merchant = Merchant.get(Merchant.id == merchantname)
-        return jsonify(merchant.to_dict()), 200
+        return jsonify(model_to_dict(merchant)), 200
     except DoesNotExist:
         logger.debug(f"Error merchant not found {merchantname}")
         return jsonify({"Error": "Merchant not found"}), 404
@@ -56,7 +56,8 @@ def update_merchant(user, merchantname):
         # TODO: need to somehow filter the data given by merchant
         query = Merchant.update(**data).where(Merchant.id == merchantname)
         query.execute()
-        update_merchant = Merchant.get(Merchant.id == merchantname)
+        logger.debug(f"Successfully updated merchant {merchantname}.")
+        updated_merchant = Merchant.get(Merchant.id == merchantname)
         return jsonify(updated_merchant.to_dict()), 200
     except DoesNotExist:
         logger.debug(f"Error merchant not found {merchantname}")
