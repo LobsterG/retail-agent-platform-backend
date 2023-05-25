@@ -14,27 +14,25 @@ def cli():
     pass
 
 @cli.command()
+@click.option('--env')
 def create_tables(**kwargs):
     """Create database tables"""
     db = db_initialize(kwargs['env'])
-    db.create_tables([Country])
-    db.create_tables([User])
-    db.create_tables([Merchant])
-    db.create_tables([Product])
-    db.create_tables([Order])
-    db.create_tables([OrderItem])
+    with db.bind_ctx(MODELS):
+        from app.models import BaseModel
+        BaseModel.update_env(kwargs['env'])
+        db.create_tables(MODELS)
     print("Tables created!")
 
 @cli.command()
+@click.option('--env')
 def drop_tables(**kwargs):
     """Drop database tables"""
     db = db_initialize(kwargs['env'])
-    db.drop_tables([OrderItem])
-    db.drop_tables([Order])
-    db.drop_tables([Product])
-    db.drop_tables([Merchant])
-    db.drop_tables([User])
-    db.drop_tables([Country])
+    with db.bind_ctx(MODELS):
+        from app.models import BaseModel
+        BaseModel.update_env(kwargs['env'])
+        db.drop_tables(MODELS)
     print("Tables droped!")
 
 @cli.command()
