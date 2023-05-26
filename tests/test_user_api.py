@@ -2,7 +2,7 @@ import json
 import pytest
 import peewee
 
-from . import conftest
+# from . import conftest
 from flask import jsonify
 from unittest.mock import patch, MagicMock
 from app.models.users import User

@@ -119,7 +119,7 @@ class MerchantTestCase(unittest.TestCase):
         }
 
         merchant_id = 1
-        response = self.client.put(
+        response = self.client.patch(
             f'/api/{api_version}/merchant/{merchant_id}', 
             data=json.dumps(update_merchant_data), 
             content_type='application/json')

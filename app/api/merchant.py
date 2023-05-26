@@ -48,7 +48,7 @@ def get_merchant(user, merchantname):
         logger.exception(f"Error getting merchant", exc_info=e)
         return jsonify({"error": "Unable to retrieve merchant"}),500
 
-@merchant_bp.route('/<merchantname>', methods=["PUT"])
+@merchant_bp.route('/<merchantname>', methods=["PATCH"])
 @verify_jwt_token
 def update_merchant(user, merchantname):
     try:
