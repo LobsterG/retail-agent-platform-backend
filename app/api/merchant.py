@@ -37,10 +37,10 @@ def create_merchant(user):
 
 @merchant_bp.route('/<merchantname>', methods=["GET"])
 @verify_jwt_token
-def get_merchant(user, jwt_token, merchantname):
+def get_merchant(user, merchantname):
     try:
         merchant = Merchant.get(Merchant.id == merchantname)
-        return jsonify(merchant.to_dict()), 200
+        return jsonify(model_to_dict(merchant)), 200
     except DoesNotExist:
         logger.debug(f"Error merchant not found {merchantname}")
         return jsonify({"Error": "Merchant not found"}), 404
@@ -48,15 +48,16 @@ def get_merchant(user, jwt_token, merchantname):
         logger.exception(f"Error getting merchant", exc_info=e)
         return jsonify({"error": "Unable to retrieve merchant"}),500
 
-@merchant_bp.route('/<merchantname>', methods=["PUT"])
+@merchant_bp.route('/<merchantname>', methods=["PATCH"])
 @verify_jwt_token
-def update_merchant(user, jwt_token, merchantname):
+def update_merchant(user, merchantname):
     try:
         data = request.get_json()
         # TODO: need to somehow filter the data given by merchant
         query = Merchant.update(**data).where(Merchant.id == merchantname)
         query.execute()
-        update_merchant = Merchant.get(Merchant.id == merchantname)
+        logger.debug(f"Successfully updated merchant {merchantname}.")
+        updated_merchant = Merchant.get(Merchant.id == merchantname)
         return jsonify(updated_merchant.to_dict()), 200
     except DoesNotExist:
         logger.debug(f"Error merchant not found {merchantname}")
@@ -68,7 +69,7 @@ def update_merchant(user, jwt_token, merchantname):
 
 @merchant_bp.route('/<merchantname>', methods=["DELETE"])
 @verify_jwt_token
-def delete_merchant(user, jwt_token, merchantname):
+def delete_merchant(user, merchantname):
     try:
         query = Merchant.delete().where(Merchant.id == merchantname)
         query.execute()

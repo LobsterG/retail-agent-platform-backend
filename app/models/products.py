@@ -1,11 +1,10 @@
 from . import BaseModel
 from peewee import *
-from app import db
 from enum import Enum
 from .merchants import Merchant
 
 
-class Status(Enum):
+class StockStatus(Enum):
     OUT_OF_STOCK = 'Out of Stock'
     IN_STOCK = 'In stock'
     LOW_ON_STOCK = 'Low on Stock (less than 5)'
@@ -32,7 +31,8 @@ class Product(BaseModel):
     id = AutoField(primary_key=True)
     name = CharField()
     price = FloatField()
-    status = EnumField(choices=Status)
+    status = EnumField(choices=StockStatus)
+    stock_level = IntegerField()
     merchant_id = ForeignKeyField(Merchant, backref='products')
 
 
@@ -41,7 +41,7 @@ class Product(BaseModel):
         from scripts.seed import ProductFactory
 
         fake_product = ProductFactory.create_batch(count, merchant_id=merchant_id)
-        with db.atomic():
+        with BaseModel._meta.database.atomic():
             product_list = [product.__dict__['__data__'] for product in fake_product]
             for product in product_list:
                 cls.create(**product)

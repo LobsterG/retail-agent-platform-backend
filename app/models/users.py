@@ -1,7 +1,6 @@
 from . import BaseModel
 from .countries import Country
 from peewee import *
-from app import db
 
 
 class User(BaseModel):
@@ -20,7 +19,7 @@ class User(BaseModel):
         from scripts.seed import UserFactory
 
         fake_users = UserFactory.create_batch(count, country_code=country_code)
-        with db.atomic():
+        with BaseModel._meta.database.atomic():
             user_list = [user.__dict__['__data__'] for user in fake_users]
             for user in user_list:
                 cls.create(**user)

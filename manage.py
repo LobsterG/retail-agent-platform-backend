@@ -5,47 +5,51 @@ import time
 
 from flask.cli import FlaskGroup, with_appcontext
 from flask_migrate import Migrate
-from app import create_app, db
-from app.models.users import User
-from app.models.products import Product
-from app.models.merchants import Merchant
-from app.models.countries import Country
-from app.models.orders import Order
-from app.models.order_items import OrderItem
+from app import db_initialize
+from app.models import *
 
 
-app = create_app()
-cli = FlaskGroup(app)
-migrate = Migrate()
-
-migrate.init_app(app, db)
+@click.group()
+def cli():
+    pass
 
 @cli.command()
-def create_tables():
+@click.option('--env')
+def create_tables(**kwargs):
     """Create database tables"""
-    db.create_tables([Country])
-    db.create_tables([User])
-    db.create_tables([Merchant])
-    db.create_tables([Product])
-    db.create_tables([Order])
-    db.create_tables([OrderItem])
+    db = db_initialize(kwargs['env'])
+    with db.bind_ctx(MODELS):
+        from app.models import BaseModel
+        BaseModel.update_env(kwargs['env'])
+        db.create_tables(MODELS)
     print("Tables created!")
 
 @cli.command()
-def drop_tables():
+@click.option('--env')
+def drop_tables(**kwargs):
     """Drop database tables"""
-    db.drop_tables([OrderItem])
-    db.drop_tables([Order])
-    db.drop_tables([Product])
-    db.drop_tables([Merchant])
-    db.drop_tables([User])
-    db.drop_tables([Country])
+    db = db_initialize(kwargs['env'])
+    with db.bind_ctx(MODELS):
+        from app.models import BaseModel
+        BaseModel.update_env(kwargs['env'])
+        db.drop_tables(MODELS)
     print("Tables droped!")
 
 @cli.command()
-def runserver():
+@click.option('--env')
+def runserver(**kwargs):
     """Run the development server"""
+    from app import create_app
+    app = create_app(kwargs['env'])
+    cli = FlaskGroup(app)
     app.run(host='0.0.0.0', port=5000, debug=True)
+
+
+@cli.command()
+def migrate_db():
+    migrate = Migrate()
+    migrate.init_app(app, db)
+
 
 @cli.command()
 @click.option('--count')

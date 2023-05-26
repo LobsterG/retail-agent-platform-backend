@@ -1,6 +1,5 @@
 from . import BaseModel
 from peewee import *
-from app import db
 from enum import Enum
 
 
@@ -14,7 +13,7 @@ class Country(BaseModel):
         from scripts.seed import CountryFactory
 
         fake_Countries = CountryFactory.create_batch(count)
-        with db.atomic():
+        with BaseModel._meta.database.atomic():
             country_list = [country.__dict__['__data__'] for country in fake_Countries]
             for country in country_list:
                 cls.create(**country)
