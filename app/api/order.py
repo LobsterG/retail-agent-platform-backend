@@ -6,7 +6,7 @@ from enum import Enum
 from flask import jsonify, request
 from flask import Blueprint
 from app import csrf
-from app.models import Order, OrderStatus, PaymentStatus, OrderItem, Product, Merchant
+from app.models import Order, OrderStatus, PaymentStatus, OrderItem, Product, Merchant, User, StockStatus
 from playhouse.shortcuts import model_to_dict
 from config import Config
 from peewee import DoesNotExist
@@ -20,17 +20,18 @@ logger = logging.getLogger(Config.LOGGER_NAME)
 def _serialize_extras(obj):
     if isinstance(obj, datetime.datetime):
         return obj.isoformat()
-    if isinstance(obj, PaymentStatus) or isinstance(obj, OrderStatus):
+    if isinstance(obj, PaymentStatus) or isinstance(obj, OrderStatus) or isinstance(obj, StockStatus):
         return obj.value
     raise TypeError(f"Object of type {obj.__class__.__name__} is not JSON serializable")
 
 
 def _generate_order_id(buyer_id, payment_status):
     order = Order.create(
-                user_id=buy_id,
+                user_id=buyer_id,
                 payment_status = payment_status,
-                order_status = OrderStatus.ORDERED
+                order_status = OrderStatus.ORDERED.value
             )
+    return order.id
 
 
 @order_bp.route('/<user_id>', methods=['GET'])
@@ -68,7 +69,7 @@ Expected data structure:
         {
             "product": "product_id",
             "merchant": "merchant_id",
-            "quantitiy": "integer",
+            "quantity": "integer",
             "unit_price": "float"
         }
     ],
@@ -82,7 +83,7 @@ def create_order(user):
         # TODO: assume the data structure has already been validated at an API gateway?
         data = request.json
 
-        if data["payment_status"] not in PaymentStatus:
+        if data["payment_status"] not in PaymentStatus._value2member_map_:
             logger.debug(f"Invalid payment status, {data['payment_status']}.")
             return jsonify({"error": "Invalid payment status."}), 400
 
@@ -104,14 +105,13 @@ def create_order(user):
             return jsonify({"error": "No valid products found."}), 400
 
         # So product can be quickly accessed via ID
-        product_dict = {product.id: product for product in purchase_products}
-
+        product_dict = {product.id: model_to_dict(product) for product in purchase_products}
         order_id = None
         orders = []
         for purchase_info in data["orders"]:
             # Check if stock level is enough to create the order and 
             if purchase_info["product"] in product_dict and \
-                purchase_info["quantitiy"] <= product_dict[purchase_info["product"]]["stock_level"]:
+                purchase_info["quantity"] <= product_dict[purchase_info["product"]]["stock_level"]:
                 
                 if order_id is None:
                     order_id = _generate_order_id(buyer_id, data["payment_status"])
@@ -127,10 +127,10 @@ def create_order(user):
                 )
                 # Update stock level
                 query = Product \
-                            .update(stocket_level=Product.stock_level - purchase_info["quantitiy"]) \
+                            .update(stock_level=Product.stock_level - purchase_info["quantity"]) \
                             .where(Product.id == purchase_info["product"])
                 query.execute()
-                # product_dict[purchase_info["product"]].stock_level -= purchase_info["quantitiy"]
+                # product_dict[purchase_info["product"]].stock_level -= purchase_info["quantity"]
                 # product_dict[purchase_info["product"]].save()
 
         if not orders:
@@ -139,9 +139,9 @@ def create_order(user):
 
         result = {
             "order_id": order_id,
-            "order_items": orders.to_dict()
+            "order_items": [model_to_dict(create_order) for create_order in orders]
         }
-        return jsonify(result), 201
+        return jsonify(json.dumps(result, default=_serialize_extras)), 201
     except Exception as e:
         logger.exception(f"Error creating order", exc_info=e)
         return jsonify({"error": "Unable to create order"}), 400
@@ -152,12 +152,12 @@ def get_order(user, user_id, order_id):
     try:
         # TODO: need to handle a case where user and user_id has a mismatch
         order = Order.get(Order.id == order_id)
-
-        if order.user_id != user_id:
+        if order.user_id.id != user_id:
             logger.debug(f"Error user {user_id} tried accessing order {order_id}")
             return jsonify({"Error": "Order does not belong to you."}), 401
 
-        return jsonify(order.to_dict()), 200
+        logger.debug(f"Successfully retrieved order {order_id} for {user_id}.")
+        return jsonify(json.dumps(model_to_dict(order), default=_serialize_extras)), 200
     except DoesNotExist:
         logger.debug(f"Error order not found {order_id}")
         return jsonify({"Error": "Order not found"}), 404

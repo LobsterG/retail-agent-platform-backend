@@ -28,6 +28,7 @@ class BaseModel(Model):
 from .merchants import Merchant
 from .countries import Country
 from .order_items import OrderItem
-from .products import Product
+from .products import Product, StockStatus
 from .orders import Order, PaymentStatus, OrderStatus
 from .users import User
+MODELS = (Country, User, Merchant, Product, Order, OrderItem)
