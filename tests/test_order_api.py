@@ -8,9 +8,7 @@ from app.models import MODELS
 from unittest.mock import patch, MagicMock
 from playhouse.shortcuts import model_to_dict
 
-# TODO: this needs to be refactored. The test database should already have exiting merchant created. 
-# So each test could test their own instance of merchant
-# This is to avoid delete or update operation corrupting the data in the test data.
+
 # TODO: Add test cases for operations that would expect to fail. Currently only successful operations are tested
 api_version = 'v1'
 class MerchantTestCase(unittest.TestCase):

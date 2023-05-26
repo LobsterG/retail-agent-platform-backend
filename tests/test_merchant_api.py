@@ -32,17 +32,17 @@ class MerchantTestCase(unittest.TestCase):
 
     @classmethod
     def initalize_data(cls):
-        countr_code = 'TC'
+        country_code = 'TC'
         user_id = 'test_user_id'
         merchant_id = 'test_merchant_id'
         country_data = {
-            "code": countr_code,
+            "code": country_code,
             "name": "test_country"
         }
         user_data = {
             "id": user_id,
             "account_status": "active",
-            "country_code": countr_code,
+            "country_code": country_code,
             "email": "test_email@example.com",
             "first_name": "Bob",
             "last_name": "Moyer Second",
@@ -51,7 +51,7 @@ class MerchantTestCase(unittest.TestCase):
         }
         merchant_data = {
             "name": merchant_id,
-            "country_code": countr_code,
+            "country_code": country_code,
             "user_id": user_id
         }
         print('Initalizing Data...')        

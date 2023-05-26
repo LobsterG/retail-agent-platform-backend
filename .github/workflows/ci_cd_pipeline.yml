@@ -20,16 +20,6 @@ jobs:
           POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
           POSTGRES_DB: ${{ secrets.DB_NAME }}
         ports:
-          - 5432:5432
-        options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
-
-      postgres-test:
-        image: postgres
-        env:
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
-          POSTGRES_DB: ${{ secrets.DB_NAME }}_test
-        ports:
           - 5433:5432
         options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
 
@@ -58,16 +48,16 @@ jobs:
     - name: Create log folder
       run: mkdir -p app/logs
 
-    - name: Initialize database
-      run: |
-        python manage.py create-tables --env prod
+    # - name: Initialize database
+    #   run: |
+    #     python manage.py create-tables --env prod
 
     - name: Run unit tests
       env:
         POSTGRES_HOST: localhost
         POSTGRES_PORT: 5432
         POSTGRES_USER: postgres
-        POSTGRES_DB: ${{ secrets.DB_NAME }}_test
+        POSTGRES_DB: ${{ secrets.DB_NAME }}
         POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
       run: |
         python -m pytest

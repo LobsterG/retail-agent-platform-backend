@@ -90,14 +90,17 @@ def get_user(username):
         logger.exception(f"Error getting user", exc_info=e)
         return jsonify({"error": "Unable to retrieve user"}),500
 
-@user_bp.route('/<username>', methods=["PUT"])
+@user_bp.route('/<username>', methods=["PATCH"])
 def update_user(username):
     try:
         data = request.get_json()
         # TODO: need to somehow filter the data given by user
         query = User.update(**data).where(User.id == username)
-        query.execute()
-        return jsonify({"message": "User updated successfully"}), 200
+        rows_updated = query.execute()
+        if rows_updated:
+            return jsonify({"message": "User updated successfully"}), 204
+        else:
+            return jsonify({"Message": "No changes were made"}), 400
     except DoesNotExist:
         logger.debug(f"Error user not found {username}")
         return jsonify({"Error": "User not found"}), 404
