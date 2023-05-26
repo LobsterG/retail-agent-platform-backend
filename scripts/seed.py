@@ -2,7 +2,7 @@ import factory
 from factory.faker import Faker
 from factory.fuzzy import FuzzyText, FuzzyChoice
 from app.models.users import User
-from app.models.products import Product, Status
+from app.models.products import Product, StockStatus
 from app.models.merchants import Merchant
 from app.models.countries import Country
 from app.models.orders import Order, PaymentStatus, OrderStatus
@@ -47,7 +47,7 @@ class ProductFactory(factory.Factory):
     id = factory.Sequence(lambda n: n)
     name = Faker('word')
     price = Faker('pydecimal', left_digits=3, right_digits=2, positive=True)
-    status = FuzzyChoice(choices=[s.value for s in Status])
+    status = FuzzyChoice(choices=[s.value for s in StockStatus])
     merchant_id = factory.SubFactory(MerchantFactory)
        
 

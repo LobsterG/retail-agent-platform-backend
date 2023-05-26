@@ -4,7 +4,7 @@ from enum import Enum
 from .merchants import Merchant
 
 
-class Status(Enum):
+class StockStatus(Enum):
     OUT_OF_STOCK = 'Out of Stock'
     IN_STOCK = 'In stock'
     LOW_ON_STOCK = 'Low on Stock (less than 5)'
@@ -31,7 +31,7 @@ class Product(BaseModel):
     id = AutoField(primary_key=True)
     name = CharField()
     price = FloatField()
-    status = EnumField(choices=Status)
+    status = EnumField(choices=StockStatus)
     stock_level = IntegerField()
     merchant_id = ForeignKeyField(Merchant, backref='products')
 
