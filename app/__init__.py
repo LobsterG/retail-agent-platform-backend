@@ -71,6 +71,7 @@ def create_app(environment):
         rootLogger.debug("API blueprints added.")
 
         # Add custom object types to parser
-        from .helper import CustomEncoder 
-        app.json_encoder = CustomEncoder
+        from .helper import CustomJsonProvider
+        app.json_provider_class  = CustomJsonProvider
+        app.json = CustomJsonProvider(app)
     return app
