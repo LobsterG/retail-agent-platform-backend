@@ -1,9 +1,10 @@
 import logging 
-
+import json
+import datetime
 from flask import jsonify, request
 from flask import Blueprint
 from app import csrf
-from app.models import Product, Merchant
+from app.models import Product, Merchant, StockStatus
 from playhouse.shortcuts import model_to_dict
 from config import Config
 from peewee import DoesNotExist
@@ -12,6 +13,7 @@ from app.auth import verify_jwt_token
 
 product_bp = Blueprint('product_bp', __name__)
 logger = logging.getLogger(Config.LOGGER_NAME)
+
 
 # Confirms if the user is the owner of the merchant
 def _is_merchant_same_as_user(merchant_id, user_id):
@@ -32,7 +34,7 @@ def get_products():
         return jsonify({"error": "Unable to retrieve products"}), 500
 
 @product_bp.route('/<product_id>', methods=["GET"])
-def get_product():
+def get_product(product_id):
     try:
         product = Product.get(Product.id == product_id)
         return jsonify(model_to_dict(product)), 200
@@ -43,6 +45,15 @@ def get_product():
         logger.exception(f"Error getting product", exc_info=e)
         return jsonify({"error": "Unable to retrieve product"}),500
 
+"""
+Expected data structure:
+{
+    "name": "product_name",
+    "price": 10.90,
+    "stock_level": 20
+    "merchant_id": 1
+}
+"""
 @product_bp.route('/', methods=['POST'])
 @verify_jwt_token
 def create_product(user):
@@ -50,8 +61,15 @@ def create_product(user):
         data = request.json
 
         if _is_merchant_same_as_user(data['merchant_id'], user.id):
+            if data['stock_level'] > 5:
+                data['status'] = StockStatus.IN_STOCK.value
+            elif data['stock_level'] > 0:
+                data['status'] = StockStatus.LOW_ON_STOCK.value
+            else:
+                data['stock_level'] = 0
+                data['status'] = StockStatus.OUT_OF_STOCK.value
             product = Product.create(**data)
-            return jsonify(product.to_dict()), 201
+            return jsonify(model_to_dict(product)), 201
         else:
             logger.exception(f"User {user.id} tried creating product with merchant {data['merchant_id']}")
             return jsonify({"error": f"Not authorized to create product using {data['merchant_id']}"}), 403
@@ -73,7 +91,7 @@ def update_product(user, product_id):
                     setattr(product, field, value)
             logger.debug(f"Successfully updated product {product_id}.")
             product.save()
-            return jsonify(updated_product.to_dict()), 200
+            return jsonify({"Message": "Updated successfully"}), 204
         else:
             logger.exception(f"User {user.id} tried updating product with merchant {data['merchant_id']}")
             return jsonify({"error": f"Not authorized to create product using {data['merchant_id']}"}), 403
