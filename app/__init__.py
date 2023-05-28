@@ -58,16 +58,20 @@ def create_app(environment):
 
     with app.app_context():
         # Note: import * is only allowed at module level
-        from .api import user_bp
-        from .api import merchant_bp
-        from .api import order_bp
+        from .api import user_bp, merchant_bp, order_bp, product_bp
         api_version = "v1"
         app.register_blueprint(user_bp, url_prefix=f'/api/{api_version}/user')
         app.register_blueprint(merchant_bp, url_prefix=f'/api/{api_version}/merchant')
         app.register_blueprint(order_bp, url_prefix=f'/api/{api_version}/order')
+        app.register_blueprint(product_bp, url_prefix=f'/api/{api_version}/product')
         csrf.exempt(user_bp)    
         csrf.exempt(merchant_bp)   
         csrf.exempt(order_bp) 
+        csrf.exempt(product_bp) 
         rootLogger.debug("API blueprints added.")
-        
+
+        # Add custom object types to parser
+        from .helper import CustomJsonProvider
+        app.json_provider_class  = CustomJsonProvider
+        app.json = CustomJsonProvider(app)
     return app

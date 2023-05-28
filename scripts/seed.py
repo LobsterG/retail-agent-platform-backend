@@ -48,6 +48,7 @@ class ProductFactory(factory.Factory):
     name = Faker('word')
     price = Faker('pydecimal', left_digits=3, right_digits=2, positive=True)
     status = FuzzyChoice(choices=[s.value for s in StockStatus])
+    stock_level = Faker('pyint', min_value=1, max_value=9999)
     merchant_id = factory.SubFactory(MerchantFactory)
        
 

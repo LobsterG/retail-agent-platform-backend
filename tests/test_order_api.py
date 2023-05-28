@@ -172,7 +172,7 @@ class MerchantTestCase(unittest.TestCase):
             f'/api/{api_version}/order/', 
             data=json.dumps(order_data), 
             content_type='application/json')
-        data = json.loads(response.get_json())
+        data = response.get_json()
         
         self.assertEqual(response.status_code, 201)
         self.assertEqual(len(data["order_items"]), len(order_data["orders"]))
@@ -194,7 +194,7 @@ class MerchantTestCase(unittest.TestCase):
     def test_get_orders(self):
         user_id = self.buyer_data['id']
         response = self.client.get(f'/api/{api_version}/order/{user_id}')
-        data = json.loads(response.get_json())
+        data = response.get_json()
         self.assertEqual(response.status_code, 200)
         self.assertEqual(type(data), list)
         self.assertGreater(len(data), 0)
@@ -204,7 +204,7 @@ class MerchantTestCase(unittest.TestCase):
         user_id = self.buyer_data['id']
         order_id = 1
         response = self.client.get(f'/api/{api_version}/order/{user_id}/{order_id}')
-        data = json.loads(response.get_json())
+        data = response.get_json()
         self.assertEqual(response.status_code, 200)
         self.assertGreater(len(data), 0)
         self.assertEqual(data["id"], order_id)

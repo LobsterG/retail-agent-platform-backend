@@ -14,7 +14,7 @@ def cli():
     pass
 
 @cli.command()
-@click.option('--env')
+@click.option('--env', default='dev', help='Environment name')
 def create_tables(**kwargs):
     """Create database tables"""
     db = db_initialize(kwargs['env'])
@@ -25,7 +25,7 @@ def create_tables(**kwargs):
     print("Tables created!")
 
 @cli.command()
-@click.option('--env')
+@click.option('--env', default='dev', help='Environment name')
 def drop_tables(**kwargs):
     """Drop database tables"""
     db = db_initialize(kwargs['env'])
@@ -36,7 +36,7 @@ def drop_tables(**kwargs):
     print("Tables droped!")
 
 @cli.command()
-@click.option('--env')
+@click.option('--env', default='dev', help='Environment name')
 def runserver(**kwargs):
     """Run the development server"""
     from app import create_app
@@ -53,8 +53,13 @@ def migrate_db():
 
 @cli.command()
 @click.option('--count')
+@click.option('--env', default='dev', help='Environment name')
 def seed(**kwargs):
     """Seed the database with test data."""
+    # db = db_initialize(kwargs['env'])
+    # with db.bind_ctx(MODELS):
+    #     from app.models import BaseModel
+    #     BaseModel.update_env(kwargs['env'])
     fake_countries = Country.seed(int(kwargs['count']))
     
     fake_users, fake_merchants, fake_products, fake_orders = [], [], [], []

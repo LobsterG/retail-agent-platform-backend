@@ -17,14 +17,6 @@ order_bp = Blueprint('order_bp', __name__)
 logger = logging.getLogger(Config.LOGGER_NAME)
 
 
-def _serialize_extras(obj):
-    if isinstance(obj, datetime.datetime):
-        return obj.isoformat()
-    if isinstance(obj, PaymentStatus) or isinstance(obj, OrderStatus) or isinstance(obj, StockStatus):
-        return obj.value
-    raise TypeError(f"Object of type {obj.__class__.__name__} is not JSON serializable")
-
-
 def _generate_order_id(buyer_id, payment_status):
     order = Order.create(
                 user_id=buyer_id,
@@ -49,7 +41,7 @@ def get_orders(user, user_id):
         # To properly use custom seralizer, see https://stackoverflow.com/questions/44146087/pass-user-built-json-encoder-into-flasks-jsonify
         # The second answer from Dmitry is more valid as the json_encoder will be depreviated
         # Official documentation from Flask: 
-        return jsonify(json.dumps(order_data, default=_serialize_extras)) , 200
+        return jsonify(order_data), 200
     except Exception as e:
         logger.exception("Error getting errors:", exc_info=e)
         return jsonify({"error": "Unable to retrieve orders"}), 500
@@ -141,7 +133,7 @@ def create_order(user):
             "order_id": order_id,
             "order_items": [model_to_dict(create_order) for create_order in orders]
         }
-        return jsonify(json.dumps(result, default=_serialize_extras)), 201
+        return jsonify(result), 201
     except Exception as e:
         logger.exception(f"Error creating order", exc_info=e)
         return jsonify({"error": "Unable to create order"}), 400
@@ -157,7 +149,7 @@ def get_order(user, user_id, order_id):
             return jsonify({"Error": "Order does not belong to you."}), 401
 
         logger.debug(f"Successfully retrieved order {order_id} for {user_id}.")
-        return jsonify(json.dumps(model_to_dict(order), default=_serialize_extras)), 200
+        return jsonify(model_to_dict(order)), 200
     except DoesNotExist:
         logger.debug(f"Error order not found {order_id}")
         return jsonify({"Error": "Order not found"}), 404
