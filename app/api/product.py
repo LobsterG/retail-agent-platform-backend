@@ -52,7 +52,7 @@ Expected data structure:
 {
     "name": "product_name",
     "price": 10.90,
-    "stock_level": 20
+    "stock_level": 20,
     "merchant_id": 1
 }
 """
