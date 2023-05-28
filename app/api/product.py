@@ -4,7 +4,8 @@ import datetime
 from flask import jsonify, request
 from flask import Blueprint
 from app import csrf
-from app.models import Product, Merchant, StockStatus
+from app.helper import CustomEncoder
+from app.models import Product, Merchant, StockStatus, User
 from playhouse.shortcuts import model_to_dict
 from config import Config
 from peewee import DoesNotExist
@@ -37,6 +38,7 @@ def get_products():
 def get_product(product_id):
     try:
         product = Product.get(Product.id == product_id)
+        logger.debug(f"Successfully retrieved product {product_id}.")
         return jsonify(model_to_dict(product)), 200
     except DoesNotExist:
         logger.debug(f"Error product not found {product_id}")
@@ -60,7 +62,7 @@ def create_product(user):
     try:
         data = request.json
 
-        if _is_merchant_same_as_user(data['merchant_id'], user.id):
+        if _is_merchant_same_as_user(data['merchant_id'], user['id']):
             if data['stock_level'] > 5:
                 data['status'] = StockStatus.IN_STOCK.value
             elif data['stock_level'] > 0:
@@ -71,7 +73,7 @@ def create_product(user):
             product = Product.create(**data)
             return jsonify(model_to_dict(product)), 201
         else:
-            logger.exception(f"User {user.id} tried creating product with merchant {data['merchant_id']}")
+            logger.exception(f"User {user['id']} tried creating product with merchant {data['merchant_id']}")
             return jsonify({"error": f"Not authorized to create product using {data['merchant_id']}"}), 403
         
     except Exception as e:
@@ -83,7 +85,8 @@ def create_product(user):
 def update_product(user, product_id):
     try:
         data = request.get_json()
-        product = Product.get_or_none((Product.id == product_id) & (Product.merchant_id.user_id == user.id))
+        # product = Product.get_or_none((Product.id == product_id) & (Product.merchant_id.user_id.id == user['id']))
+        product = Product.select().join(Merchant).join(User).where((Product.id == product_id) & (User.id == user['id'])).first()
         if product:
             # Update the fields with the provided data
             for field, value in data.items():
@@ -93,7 +96,7 @@ def update_product(user, product_id):
             product.save()
             return jsonify({"Message": "Updated successfully"}), 204
         else:
-            logger.exception(f"User {user.id} tried updating product with merchant {data['merchant_id']}")
+            logger.exception(f"User {user['id']} tried updating product with merchant {data['merchant_id']}")
             return jsonify({"error": f"Not authorized to create product using {data['merchant_id']}"}), 403
     except DoesNotExist:
         logger.debug(f"Error product not found {product_id}")
@@ -107,15 +110,14 @@ def update_product(user, product_id):
 def delete_product(user, product_id):
     try:
         product = Product.get(Product.id == product_id)
-
         # Check if the requesting user is the owner of the associated merchant
-        if product.merchant.user_id != user.id:
-            logger.exception(f"User {user.id} tried deleting product {product_id} with merchant {data['merchant_id']}")
-            return jsonify({"error": f"Not authorized to delete product using {data['merchant_id']}"}), 403
+        if product.merchant_id.user_id.id != user['id']:
+            logger.exception(f"User {user['id']} tried deleting product {product_id} with merchant {product.merchant_id}")
+            return jsonify({"error": f"Not authorized to delete product using {user['id']}"}), 403
 
         product.delete_instance()
         logger.debug(f"Product {product_id} has been deleted.")
-        return jsonify({"message": "Product deleted successfully"}), 200
+        return jsonify({"message": "Product deleted successfully"}), 204
     except DoesNotExist:
         logger.debug(f"Error product not found {product_id}")
         return jsonify({"Error": "Product not found"}), 404
